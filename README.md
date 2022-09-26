@@ -8,7 +8,7 @@ The purpose of this application is to help developers who want to revise and rec
 - Store question to PostgreSQL or Notion
 
 ## How to Use
-- Clone this application by running `git clone <url>`.
+- Clone this application by running `git clone git@github.com:weehongayden/leetcode-collector-console-app.git`.
 - Run the application with `npm start` command.
 
 ## FAQ
