@@ -6,11 +6,13 @@ import { mapFrequencyToObject } from "../utils/leetcode";
 
 import Database from "./database";
 import LeetCode from "./leetcode";
+import Notion from "./notion";
 
 class Terminal {
   private _spinner: Ora;
   private _leetcode: LeetCode;
   private _database: Database;
+  private _notion: Notion;
 
   constructor() {
     this._spinner = ora({
@@ -20,6 +22,10 @@ class Terminal {
     this._database = new Database(
       "postgresql://admin:password@localhost:5432/leetcode-question"
     );
+    this._notion = new Notion({
+      version: "2022-06-28",
+      token: "secret_OjAzkQPSYa2dOa3dVkkuAWBIw3EGdhXTgmoDYknp2eD",
+    });
   }
 
   questionMenu = async (answer: string, sessionId: string) => {
@@ -33,11 +39,14 @@ class Terminal {
 
   databaseMenu = async (
     answer: string,
-    questions: QuestionModel[],
-    callback: (length: number) => {}
+    request: QuestionModel[],
+    callback: (length: number) => {},
+    databaseId?: string
   ) => {
+    console.log(answer);
     const options: DatabaseOption = {
-      postgresql: await this._databaseHandler(questions, callback),
+      postgresql: await this._databaseHandler(request, callback),
+      notion: await this._notionHandler(request, databaseId!),
     };
     return options[answer];
   };
@@ -65,6 +74,11 @@ class Terminal {
     questions: QuestionModel[],
     callback: (length: number) => {}
   ) => await this._database.googleQuestion(questions, callback);
+
+  private _notionHandler = async (
+    questions: QuestionModel[],
+    databaseId: string
+  ) => await this._notion.notionGoogleQuestion(databaseId, questions);
 }
 
 export default Terminal;

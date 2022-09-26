@@ -51,8 +51,8 @@ class Inquirer {
           value: "json",
         },
         {
-          key: "none",
-          name: "None",
+          key: "exit",
+          name: "Exit application",
           value: null,
         },
       ],

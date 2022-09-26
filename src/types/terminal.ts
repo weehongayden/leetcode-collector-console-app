@@ -5,5 +5,5 @@ export type MenuOption = {
 };
 
 export type DatabaseOption = {
-  [key: string]: {} | undefined;
+  [key: string]: {} | undefined | void;
 };
