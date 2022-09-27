@@ -20,6 +20,7 @@
   "dependencies": {
     "@types/node": "^18.7.21",
     "axios": "^0.27.2",
+    "chalk": "^5.0.1",
     "inquirer": "^9.1.2",
     "ora": "^6.1.2",
     "pg": "^8.8.0",

@@ -1,25 +1,33 @@
+import chalk from "chalk";
 import ora, { Ora } from "ora";
 import { QuestionModel } from "types/database";
 import { questionGoogleQuery } from "../query/leetcode";
-import { DatabaseOption, MenuOption } from "../types/terminal";
+import { DatabaseArgumentsType, MenuOption } from "../types/terminal";
 import { mapFrequencyToObject } from "../utils/leetcode";
 
 import Database from "./database";
+import Inquirer from "./inquirer";
 import LeetCode from "./leetcode";
+import Notion from "./notion";
 
 class Terminal {
   private _spinner: Ora;
+  private _inquirier: Inquirer;
   private _leetcode: LeetCode;
   private _database: Database;
+  private _notion: Notion;
 
   constructor() {
     this._spinner = ora({
       color: "green",
     });
     this._leetcode = new LeetCode();
-    this._database = new Database(
-      "postgresql://admin:password@localhost:5432/leetcode-question"
-    );
+    this._database = new Database();
+    this._notion = new Notion({
+      version: "2022-06-28",
+      token: "secret_OjAzkQPSYa2dOa3dVkkuAWBIw3EGdhXTgmoDYknp2eD",
+    });
+    this._inquirier = new Inquirer();
   }
 
   questionMenu = async (answer: string, sessionId: string) => {
@@ -31,15 +39,41 @@ class Terminal {
     return options[answer];
   };
 
-  databaseMenu = async (
-    answer: string,
-    questions: QuestionModel[],
-    callback: (length: number) => {}
-  ) => {
-    const options: DatabaseOption = {
-      postgresql: await this._databaseHandler(questions, callback),
-    };
-    return options[answer];
+  databaseMenu = async (answer: string, args: DatabaseArgumentsType) => {
+    switch (answer) {
+      case "postgresql":
+        return await this._inquirier
+          .promptDatabaseConnectionString()
+          .then(async (res) => {
+            const isActivate = await this._database.setConnectionString(
+              res.connectionString
+            );
+            if (typeof isActivate === "string") {
+              this._spinner.fail(
+                chalk.red(
+                  isActivate.charAt(0).toUpperCase() + isActivate.slice(1)
+                )
+              );
+            }
+            const count = await this._database.googleQuestion(args.questions);
+            return args.callback(count === args.questions.length);
+          });
+      case "notion":
+        return await this._inquirier
+          .promptNotionDatabase()
+          .then(async (res) => {
+            if (res.notion) {
+              const count = await this._notion.notionGoogleQuestionHandler(
+                res.notion,
+                args.questions,
+                this._spinner
+              );
+              return args.callback(count === args.questions.length);
+            }
+          });
+      default:
+        process.exit(-1);
+    }
   };
 
   private _questionGoogleHandler = async (session: string) => {
@@ -60,11 +94,6 @@ class Terminal {
     this._spinner.succeed("Successfully fetched questions from LeetCode");
     return res;
   };
-
-  private _databaseHandler = async (
-    questions: QuestionModel[],
-    callback: (length: number) => {}
-  ) => await this._database.googleQuestion(questions, callback);
 }
 
 export default Terminal;
