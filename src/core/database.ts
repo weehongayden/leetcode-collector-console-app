@@ -37,6 +37,7 @@ class Database {
           type: DataTypes.INTEGER,
           allowNull: false,
           primaryKey: true,
+          unique: true,
         },
         title: {
           type: DataTypes.STRING,
@@ -62,13 +63,9 @@ class Database {
           type: DataTypes.TEXT,
           allowNull: false,
         },
-        stats: {
-          type: DataTypes.TEXT,
-          allowNull: false,
-        },
         status: {
-          type: DataTypes.STRING,
-          allowNull: false,
+          type: DataTypes.TEXT,
+          allowNull: true,
         },
         is_paid_only: {
           type: DataTypes.BOOLEAN,
@@ -76,21 +73,30 @@ class Database {
         },
       });
 
-      this._dbspinner.start();
-      const resp = await model.bulkCreate(questions, {
-        updateOnDuplicate: ["status", "frequency", "updated_at"],
+      return model.sync().then(async () => {
+        try {
+          this._dbspinner.start();
+
+          const resp = await model.bulkCreate(questions, {
+            updateOnDuplicate: ["status", "frequency", "updated_at"],
+          });
+
+          this._dbspinner.succeed(
+            chalk.green(
+              `Successfully inserted or updated ${
+                Object.keys(resp).length
+              } questions into database`
+            )
+          );
+
+          await this._sequelize.close();
+          return await Object.keys(resp).length;
+        } catch (error: unknown) {
+          this._dbspinner.fail(
+            chalk.red(`Failed to insert questions into database, ${error}`)
+          );
+        }
       });
-
-      this._dbspinner.succeed(
-        chalk.green(
-          `Successfully inserted or updated ${
-            Object.keys(resp).length
-          } questions into database`
-        )
-      );
-
-      await this._sequelize.close();
-      return await Object.keys(resp).length;
     } catch (error: unknown) {
       this._dbspinner.fail(`Failed to connect to database, ${error}`);
     }
