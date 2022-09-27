@@ -130,6 +130,10 @@ export const addGoogleQuestion = (id: string, question: QuestionModel) => {
           };
         }),
       },
+      Completed: {
+        type: "checkbox",
+        checkbox: question.status === "ac" ? true : false,
+      },
     },
     parent: {
       database_id: id,
