@@ -16,6 +16,6 @@ import Terminal from "./core/terminal";
       questions,
       callback: (res: boolean) => res,
     });
-    console.log(`Outcome: ${res ? "Success" : "Failed"}`);
+    console.log(`💕 Outcome: ${res ? "Success" : "Failed"}`);
   }
 })();
