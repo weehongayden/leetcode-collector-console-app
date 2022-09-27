@@ -13,4 +13,4 @@ The purpose of this application is to help developers who want to revise and rec
 
 ## FAQ
 1. How to obtain the LeetCode Session ID?
-Please visit this GitHub link to learn how to fetch the LeetCode Session ID from the browser. (Failed to log in with a leetcode.com account #478)[https://github.com/LeetCode-OpenSource/vscode-leetcode/issues/478#issuecomment-559346357]
+Please visit this GitHub link to learn how to fetch the LeetCode Session ID from the browser. [Failed to log in with a leetcode.com account #478](https://github.com/LeetCode-OpenSource/vscode-leetcode/issues/478#issuecomment-559346357)
