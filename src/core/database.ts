@@ -1,27 +1,36 @@
+import chalk from "chalk";
 import ora, { Ora } from "ora";
-import { DataTypes, Sequelize } from "sequelize";
+import { DataTypes, Options, Sequelize } from "sequelize";
 import { QuestionModel } from "types/database";
 
 class Database {
   private _sequelize: Sequelize;
+  private _config: Options;
   private _dbspinner: Ora;
 
-  constructor(connectionString: string) {
+  constructor() {
     this._dbspinner = ora({
       color: "green",
     });
-    this._sequelize = new Sequelize(connectionString, {
+    this._config = {
       define: {
         underscored: true,
       },
       logging: false,
-    });
+    };
   }
 
-  googleQuestion = async (
-    questions: QuestionModel[],
-    callback: (length: number) => {}
-  ) => {
+  setConnectionString = async (connectionString: string) => {
+    try {
+      this._sequelize = new Sequelize(connectionString, this._config);
+      await this._sequelize.authenticate();
+      return true;
+    } catch (error: any) {
+      return error.message;
+    }
+  };
+
+  googleQuestion = async (questions: QuestionModel[]) => {
     try {
       const model = this._sequelize.define("google_questions", {
         frontend_id: {
@@ -68,17 +77,20 @@ class Database {
       });
 
       this._dbspinner.start();
-      await this._sequelize.authenticate();
       const resp = await model.bulkCreate(questions, {
         updateOnDuplicate: ["status", "frequency", "updated_at"],
       });
+
       this._dbspinner.succeed(
-        `Successfully inserted or updated ${
-          Object.keys(resp).length
-        } questions into database`
+        chalk.green(
+          `Successfully inserted or updated ${
+            Object.keys(resp).length
+          } questions into database`
+        )
       );
+
       await this._sequelize.close();
-      return await callback(Object.keys(resp).length);
+      return await Object.keys(resp).length;
     } catch (error: unknown) {
       this._dbspinner.fail(`Failed to connect to database, ${error}`);
     }

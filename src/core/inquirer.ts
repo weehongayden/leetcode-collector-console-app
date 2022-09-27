@@ -29,11 +29,11 @@ class Inquirer {
           : true,
     });
 
-  databaseSelection = async () => {
-    return await inquirer.prompt({
-      type: "list",
+  databaseSelection = async () =>
+    await inquirer.prompt({
+      type: "rawlist",
       name: "database",
-      message: "How do you want to store the data?",
+      message: "Where do you want to store the data?",
       choices: [
         {
           key: "postgresql",
@@ -57,7 +57,37 @@ class Inquirer {
         },
       ],
     });
-  };
+
+  promptDatabaseConnectionString = async () =>
+    await inquirer.prompt({
+      type: "input",
+      name: "connectionString",
+      message: "Please enter the database connection string:",
+      validate: (input: string) =>
+        input.length == 0 || !input
+          ? "Database Connection String cannot be blank."
+          : true,
+    });
+
+  promptNotionPage = async () =>
+    await inquirer.prompt({
+      type: "input",
+      name: "notion",
+      message: "Please enter the Notion page Id:",
+      validate: (input: string) =>
+        input.length == 0 || !input ? "Notion page Id cannot be blank." : true,
+    });
+
+  promptNotionDatabase = async () =>
+    await inquirer.prompt({
+      type: "input",
+      name: "notion",
+      message: "Please enter the Notion database Id:",
+      validate: (input: string) =>
+        input.length == 0 || !input
+          ? "Notion database Id cannot be blank."
+          : true,
+    });
 }
 
 export default Inquirer;
