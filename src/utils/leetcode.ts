@@ -26,3 +26,7 @@ export const mapFrequencyToObject = (company: CompanyTag) => {
 
   return mapObject;
 };
+
+export const convertToString = (questions: [] | object) => {
+  return JSON.stringify(questions);
+};

@@ -1,8 +1,9 @@
 import chalk from "chalk";
 import ora, { Ora } from "ora";
+import { Question } from "types/leetcode";
 import { questionGoogleQuery, questionLeetCodeQuery } from "../query/leetcode";
 import { DatabaseArgumentsType, MenuOption } from "../types/terminal";
-import { mapFrequencyToObject } from "../utils/leetcode";
+import { convertToString, mapFrequencyToObject } from "../utils/leetcode";
 
 import Database from "./database";
 import Inquirer from "./inquirer";
@@ -24,7 +25,6 @@ class Terminal {
     this._database = new Database();
     this._notion = new Notion({
       version: "2022-06-28",
-      token: "secret_OjAzkQPSYa2dOa3dVkkuAWBIw3EGdhXTgmoDYknp2eD",
     });
     this._inquirier = new Inquirer();
   }
@@ -39,17 +39,33 @@ class Terminal {
             : questionLeetCodeQuery;
         const sessionResp = await this._inquirier.promptSessionId();
 
+        let questions = [];
+
         if (answer === "fetch-google-question") {
-          return await this._fetchGoogleQuestionHandler(sessionResp, query);
+          questions = await this._fetchGoogleQuestionHandler(
+            sessionResp,
+            query
+          );
         } else {
-          return await this._fetchLeetCodeQuestionHandler(sessionResp, query);
+          questions = await this._fetchLeetCodeQuestionHandler(
+            sessionResp,
+            query
+          );
         }
+
+        this._spinner.succeed("Successfully fetched questions from LeetCode");
+
+        return questions;
       default:
         process.exit(-1);
     }
   };
 
-  databaseMenu = async (answer: string, args: DatabaseArgumentsType) => {
+  databaseMenu = async (
+    answer: string,
+    questionType: string,
+    args: DatabaseArgumentsType
+  ) => {
     switch (answer) {
       case "postgresql":
         return await this._inquirier
@@ -58,6 +74,7 @@ class Terminal {
             const isActivate = await this._database.setConnectionString(
               res.connectionString
             );
+
             if (typeof isActivate === "string") {
               this._spinner.fail(
                 chalk.red(
@@ -65,22 +82,26 @@ class Terminal {
                 )
               );
             }
-            const count = await this._database.googleQuestion(args.questions);
+
+            const count =
+              questionType === "fetch-google-question"
+                ? await this._database.googleQuestion(args.questions)
+                : await this._database.leetCodeQuestion(args.questions);
+
             return args.callback(count === args.questions.length);
           });
       case "notion":
-        return await this._inquirier
-          .promptNotionDatabase()
-          .then(async (res) => {
-            if (res.notion) {
-              const count = await this._notion.notionGoogleQuestionHandler(
-                res.notion,
-                args.questions,
-                this._spinner
-              );
-              return args.callback(count === args.questions.length);
-            }
-          });
+        const promises = await Promise.all([
+          await this._inquirier.promptNotionToken(),
+          await this._inquirier.promptNotionDatabase(),
+        ]);
+        this._notion.setToken(promises[0].notionToken);
+        const count = await this._notion.notionGoogleQuestionHandler(
+          promises[1].notionDb,
+          args.questions,
+          this._spinner
+        );
+        return args.callback(count === args.questions.length);
       default:
         process.exit(-1);
     }
@@ -92,7 +113,6 @@ class Terminal {
     return await this._leetcode
       .fetchQuestion(query, this._spinner)
       .then((data) => {
-        this._spinner.succeed("Successfully fetched questions from LeetCode");
         return data;
       });
   };
@@ -101,42 +121,51 @@ class Terminal {
     sessionResp: { session: any } & { [x: string]: {} },
     query: string
   ) {
-    this._spinner.text = "Fetching questions from LeetCode on ascending order";
-    const questions = await this._leetCodeQuestionHandler(
-      sessionResp.session,
-      JSON.stringify({
-        query: query,
-        variables: {
-          categorySlug: "",
-          skip: 0,
-          limit: -1,
-          filters: {},
-        },
-        operationName: "problemsetQuestionList",
-      })
-    );
+    this._spinner.text = "Fetching questions from LeetCode";
 
-    this._spinner.text = "Fetching questions from LeetCode on descending order";
-    const descResult = await this._leetCodeQuestionHandler(
-      sessionResp.session,
-      JSON.stringify({
-        query: query,
-        variables: {
-          categorySlug: "",
-          skip: 0,
-          limit: 1,
-          filters: {
-            orderBy: "FRONTEND_ID",
-            sortOrder: "DESCENDING",
+    const questionResp = await Promise.all([
+      await this._leetCodeQuestionHandler(
+        sessionResp.session,
+        JSON.stringify({
+          query: query,
+          variables: {
+            categorySlug: "",
+            skip: 0,
+            limit: -1,
+            filters: {},
           },
-        },
-        operationName: "problemsetQuestionList",
-      })
+          operationName: "problemsetQuestionList",
+        })
+      ),
+      await this._leetCodeQuestionHandler(
+        sessionResp.session,
+        JSON.stringify({
+          query: query,
+          variables: {
+            categorySlug: "",
+            skip: 0,
+            limit: 1,
+            filters: {
+              orderBy: "FRONTEND_ID",
+              sortOrder: "DESCENDING",
+            },
+          },
+          operationName: "problemsetQuestionList",
+        })
+      ),
+    ]);
+
+    questionResp[0].data.data.problemsetQuestionList.questions.push(
+      ...questionResp[1].data.data.problemsetQuestionList.questions
     );
 
-    return questions.data.data.problemsetQuestionList.questions.push(
-      ...descResult.data.data.problemsetQuestionList.questions
+    questionResp[0].data.data.problemsetQuestionList.questions.forEach(
+      (question: Question) => {
+        question.topicTagsString = convertToString(question.topicTags);
+      }
     );
+
+    return questionResp[0].data.data.problemsetQuestionList.questions;
   }
 
   private async _fetchGoogleQuestionHandler(

@@ -84,10 +84,7 @@ export const questionLeetCodeQuery = `
                     id
                     slug
                 }
-                hasSolution
-                hasVideoSolution
-                likes
-                dislikes
+                status
             }
         }
     }`;

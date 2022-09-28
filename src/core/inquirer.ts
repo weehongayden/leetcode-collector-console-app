@@ -19,6 +19,11 @@ class Inquirer {
           name: "Fetch Google Question from LeetCode",
           value: "fetch-google-question",
         },
+        {
+          key: "exit",
+          name: "Exit",
+          value: "exit",
+        },
       ],
     });
 
@@ -52,7 +57,7 @@ class Inquirer {
         },
         {
           key: "exit",
-          name: "Exit application",
+          name: "Exit",
           value: "exit",
         },
       ],
@@ -69,10 +74,19 @@ class Inquirer {
           : true,
     });
 
+  promptNotionToken = async () =>
+    await inquirer.prompt({
+      type: "input",
+      name: "notionToken",
+      message: "Please enter the Notion token:",
+      validate: (input: string) =>
+        input.length == 0 || !input ? "Notion token cannot be blank." : true,
+    });
+
   promptNotionPage = async () =>
     await inquirer.prompt({
       type: "input",
-      name: "notion",
+      name: "notionPg",
       message: "Please enter the Notion page Id:",
       validate: (input: string) =>
         input.length == 0 || !input ? "Notion page Id cannot be blank." : true,
@@ -81,7 +95,7 @@ class Inquirer {
   promptNotionDatabase = async () =>
     await inquirer.prompt({
       type: "input",
-      name: "notion",
+      name: "notionDb",
       message: "Please enter the Notion database Id:",
       validate: (input: string) =>
         input.length == 0 || !input

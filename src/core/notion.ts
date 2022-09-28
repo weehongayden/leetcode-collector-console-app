@@ -4,7 +4,10 @@ import { QuestionModel } from "types/database";
 import { NotionType } from "types/notion";
 import chalk from "chalk";
 
-import { addGoogleQuestion } from "../query/notion";
+import {
+  addGoogleQuestion,
+  createGoogleQuestionDatabase,
+} from "../query/notion";
 
 class Notion {
   private _headers: AxiosRequestHeaders;
@@ -14,9 +17,15 @@ class Notion {
       Accept: "application/json",
       "Notion-Version": notion.version,
       "Content-Type": "application/json",
-      Authorization: `Bearer ${notion.token}`,
     };
   }
+
+  setToken = (token: string) => {
+    Object.assign(this._headers, {
+      Authorization: `Bearer ${token}`,
+    });
+    return Promise.resolve();
+  };
 
   getRecord = async (databaseId: string, filter: {} = {}) => {
     return await axios({
@@ -30,6 +39,14 @@ class Notion {
         console.log(error);
       });
   };
+
+  createNotionDatabase = async () =>
+    await axios({
+      method: "POST",
+      url: "https://api.notion.com/v1/databases",
+      headers: this._headers,
+      data: createGoogleQuestionDatabase,
+    });
 
   notionGoogleQuestionHandler = async (
     databaseId: string,
@@ -92,7 +109,6 @@ class Notion {
         data: addGoogleQuestion(databaseId, question),
       });
     } catch (e: unknown) {
-      console.log("Error happened on Axios Add Feature List: ", e);
       spinner.fail("Failed to add questions to Notion");
     }
   };
