@@ -7,11 +7,8 @@ export type Question = {
   paidOnly: boolean;
   title: string;
   titleSlug: string;
-  topicTags: TopicTagsProps[];
-  hasSolution: boolean;
-  hasVideoSolution: boolean;
-  likes: number;
-  dislikes: number;
+  topicTags: TopicTagsProps[] & string;
+  topicTagsString?: string;
 };
 
 export type CompanyTag = {

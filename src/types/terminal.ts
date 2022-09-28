@@ -1,7 +1,8 @@
 import { QuestionModel } from "./database";
+import { Question } from "./leetcode";
 
 export type DatabaseArgumentsType = {
-  questions: QuestionModel[];
+  questions: Question[] & QuestionModel[];
   callback: (result: boolean) => {};
 };
 

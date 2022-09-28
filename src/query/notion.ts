@@ -1,84 +1,86 @@
 import { QuestionModel } from "types/database";
 import { TopicTagsProps } from "types/leetcode";
 
-export const createGoogleQuestionDatabase = {
-  properties: {
-    Tag: {
-      name: "Tag",
-      type: "multi_select",
-      multi_select: {
-        options: [],
+export const createGoogleQuestionDatabase = (id: string) => {
+  return {
+    properties: {
+      Tag: {
+        name: "Tag",
+        type: "multi_select",
+        multi_select: {
+          options: [],
+        },
+      },
+      Difficulty: {
+        name: "Difficulty",
+        type: "select",
+        select: {
+          options: [],
+        },
+      },
+      Frequency: {
+        name: "Frequency",
+        type: "number",
+        number: {
+          format: "number",
+        },
+      },
+      No: {
+        name: "No",
+        type: "number",
+        number: {
+          format: "number",
+        },
+      },
+      Name: {
+        name: "Name",
+        type: "title",
+        title: {},
+      },
+      Completed: {
+        name: "Completed",
+        type: "checkbox",
+        checkbox: {},
+      },
+      "Completion Date": {
+        name: "Completion Date",
+        type: "formula",
+        formula: {
+          expression:
+            '(prop("Completed") == true) ? now() : fromTimestamp(toNumber(""))',
+        },
       },
     },
-    Difficulty: {
-      name: "Difficulty",
-      type: "select",
-      select: {
-        options: [],
+    title: [
+      {
+        type: "text",
+        text: {
+          content: "LeetCode Google Question",
+          link: null,
+        },
+        annotations: {
+          bold: false,
+          italic: false,
+          strikethrough: false,
+          underline: false,
+          code: false,
+          color: "default",
+        },
+        plain_text: "LeetCode Question",
+        href: null,
+      },
+    ],
+    icon: {
+      type: "external",
+      external: {
+        url: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png",
       },
     },
-    Frequency: {
-      name: "Frequency",
-      type: "number",
-      number: {
-        format: "number",
-      },
+    parent: {
+      type: "page_id",
+      page_id: id,
     },
-    No: {
-      name: "No",
-      type: "number",
-      number: {
-        format: "number",
-      },
-    },
-    Name: {
-      name: "Name",
-      type: "title",
-      title: {},
-    },
-    Completed: {
-      name: "Completed",
-      type: "checkbox",
-      checkbox: {},
-    },
-    "Completion Date": {
-      name: "Completion Date",
-      type: "formula",
-      formula: {
-        expression:
-          '(prop("Completed") == true) ? now() : fromTimestamp(toNumber(""))',
-      },
-    },
-  },
-  title: [
-    {
-      type: "text",
-      text: {
-        content: "LeetCode Google Question",
-        link: null,
-      },
-      annotations: {
-        bold: false,
-        italic: false,
-        strikethrough: false,
-        underline: false,
-        code: false,
-        color: "default",
-      },
-      plain_text: "LeetCode Question",
-      href: null,
-    },
-  ],
-  icon: {
-    type: "external",
-    external: {
-      url: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png",
-    },
-  },
-  parent: {
-    type: "page_id",
-    page_id: process.env.NOTION_PAGE,
-  },
+  };
 };
 
 export const addGoogleQuestion = (id: string, question: QuestionModel) => {

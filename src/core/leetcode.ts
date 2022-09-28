@@ -16,7 +16,7 @@ class LeetCode {
     });
   };
 
-  fetchGoogleQuestion = async (requestBody: string, spinner: Ora) =>
+  fetchQuestion = async (requestBody: string, spinner: Ora) =>
     await axios({
       method: "POST",
       url: "https://leetcode.com/graphql",
@@ -25,8 +25,8 @@ class LeetCode {
       validateStatus: (status: number) => status >= 200 && status < 300,
     })
       .then((resp) => resp)
-      .catch((error) => {
-        spinner.fail("Failed to fetch questions from LeetCode");
+      .catch((error: unknown) => {
+        spinner.fail(`Failed to fetch questions from LeetCode, ${error}`);
         process.exit(-1);
       });
 }
