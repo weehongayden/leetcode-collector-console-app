@@ -34,15 +34,9 @@ class Database {
   leetCodeQuestion = async (questions: Question[]) => {
     try {
       const model = this._sequelize.define("leetcode-questions", {
-        id: {
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
-          allowNull: false,
-          unique: true,
-        },
         frontendQuestionId: {
           type: DataTypes.INTEGER,
-          field: "frontend_id",
+          field: "id",
           allowNull: false,
           primaryKey: true,
           unique: true,
@@ -98,9 +92,9 @@ class Database {
           const resp = await model.bulkCreate(questions, {
             updateOnDuplicate: [
               "difficulty",
-              "submission_rate",
+              "acRate",
               "status",
-              "frequency",
+              "freqBar",
               "updated_at",
             ],
           });

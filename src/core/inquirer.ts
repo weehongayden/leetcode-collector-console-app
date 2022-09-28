@@ -29,7 +29,7 @@ class Inquirer {
 
   promptSessionId = async () =>
     await inquirer.prompt({
-      type: "input",
+      type: "password",
       name: "session",
       message:
         "Please enter your LeetCode Session ID (CTRL + C to exit the application):",
@@ -76,7 +76,7 @@ class Inquirer {
 
   promptNotionToken = async () =>
     await inquirer.prompt({
-      type: "input",
+      type: "password",
       name: "notionToken",
       message: "Please enter the Notion token:",
       validate: (input: string) =>
