@@ -1,3 +1,5 @@
+<p align="center"><img src="https://res.cloudinary.com/dyniiffju/image/upload/v1664379890/2022-09-28_23-41-11_gpbstz.gif" /></p>
+
 # LeetCode Question Notion Database
 A small application that uses to collect LeetCode questions and store in PostgreSQL and Notion database
 
