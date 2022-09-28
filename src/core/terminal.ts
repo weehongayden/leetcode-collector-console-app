@@ -1,3 +1,4 @@
+import { AxiosPromise } from "axios";
 import chalk from "chalk";
 import ora, { Ora } from "ora";
 import { Question } from "types/leetcode";
@@ -91,13 +92,37 @@ class Terminal {
             return args.callback(count === args.questions.length);
           });
       case "notion":
-        const promises = await Promise.all([
-          await this._inquirier.promptNotionToken(),
-          await this._inquirier.promptNotionDatabase(),
-        ]);
-        this._notion.setToken(promises[0].notionToken);
+        const databaseId = await this._inquirier
+          .promptNotionToken()
+          .then(async ({ notionToken }) => {
+            this._notion.setToken(notionToken);
+            const { notionDbExists } =
+              await this._inquirier.promptNotionDatabaseExists();
+            if (notionDbExists) {
+              return await this._inquirier
+                .promptNotionDatabase()
+                .then(({ notionDb }) => notionDb);
+            } else {
+              const res = await this._inquirier
+                .promptNotionDatabaseCreation()
+                .then(({ notionCreation }) => {
+                  if (notionCreation) {
+                    return this._inquirier
+                      .promptNotionPage()
+                      .then(
+                        async ({ notionPg }) =>
+                          await this._notion.createNotionDatabase(notionPg)
+                      );
+                  }
+                  return;
+                });
+              if (res) {
+                return res.data.id;
+              }
+            }
+          });
         const count = await this._notion.notionGoogleQuestionHandler(
-          promises[1].notionDb,
+          databaseId,
           args.questions,
           this._spinner
         );

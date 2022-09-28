@@ -83,6 +83,20 @@ class Inquirer {
         input.length == 0 || !input ? "Notion token cannot be blank." : true,
     });
 
+  promptNotionDatabaseExists = async () =>
+    await inquirer.prompt({
+      type: "confirm",
+      name: "notionDbExists",
+      message: "Do you have existing database:",
+    });
+
+  promptNotionDatabaseCreation = async () =>
+    await inquirer.prompt({
+      type: "confirm",
+      name: "notionCreation",
+      message: "Do you want to create a new Notion database:",
+    });
+
   promptNotionPage = async () =>
     await inquirer.prompt({
       type: "input",

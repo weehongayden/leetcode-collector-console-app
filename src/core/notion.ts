@@ -40,12 +40,12 @@ class Notion {
       });
   };
 
-  createNotionDatabase = async () =>
+  createNotionDatabase = async (pageId: string) =>
     await axios({
       method: "POST",
       url: "https://api.notion.com/v1/databases",
       headers: this._headers,
-      data: createGoogleQuestionDatabase,
+      data: createGoogleQuestionDatabase(pageId),
     });
 
   notionGoogleQuestionHandler = async (
