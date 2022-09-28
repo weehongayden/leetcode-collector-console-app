@@ -121,11 +121,19 @@ class Terminal {
               }
             }
           });
-        const count = await this._notion.notionGoogleQuestionHandler(
-          databaseId,
-          args.questions,
-          this._spinner
-        );
+        const count =
+          questionType === "fetch-google-question"
+            ? await this._notion.notionGoogleQuestionHandler(
+                databaseId,
+                args.questions,
+                this._spinner
+              )
+            : await this._notion.notionGoogleQuestionHandler(
+                databaseId,
+                args.questions,
+                this._spinner
+              );
+
         return args.callback(count === args.questions.length);
       default:
         process.exit(-1);
