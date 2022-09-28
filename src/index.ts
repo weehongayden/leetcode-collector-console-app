@@ -6,8 +6,9 @@ import Terminal from "./core/terminal";
   const terminal = new Terminal();
 
   const { options: selectedOption } = await inquirer.start();
-  const { session } = await inquirer.promptSessionId();
-  const questions = await terminal.questionMenu(selectedOption, session);
+  const questions = await terminal.questionMenu(selectedOption);
+
+  console.log(questions);
 
   let res = true;
   while (res) {

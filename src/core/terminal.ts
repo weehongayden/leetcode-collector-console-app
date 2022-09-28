@@ -1,7 +1,6 @@
 import chalk from "chalk";
 import ora, { Ora } from "ora";
-import { QuestionModel } from "types/database";
-import { questionGoogleQuery } from "../query/leetcode";
+import { questionGoogleQuery, questionLeetCodeQuery } from "../query/leetcode";
 import { DatabaseArgumentsType, MenuOption } from "../types/terminal";
 import { mapFrequencyToObject } from "../utils/leetcode";
 
@@ -30,13 +29,24 @@ class Terminal {
     this._inquirier = new Inquirer();
   }
 
-  questionMenu = async (answer: string, sessionId: string) => {
-    const options: MenuOption = {
-      "fetch-google-question-from-leetcode": await this._questionGoogleHandler(
-        sessionId
-      ),
-    };
-    return options[answer];
+  questionMenu = async (answer: string) => {
+    switch (answer) {
+      case "fetch-leetcode-question":
+      case "fetch-google-question":
+        let query =
+          answer === "fetch-google-question"
+            ? questionGoogleQuery
+            : questionLeetCodeQuery;
+        const sessionResp = await this._inquirier.promptSessionId();
+
+        if (answer === "fetch-google-question") {
+          return await this._fetchGoogleQuestionHandler(sessionResp, query);
+        } else {
+          return await this._fetchLeetCodeQuestionHandler(sessionResp, query);
+        }
+      default:
+        process.exit(-1);
+    }
   };
 
   databaseMenu = async (answer: string, args: DatabaseArgumentsType) => {
@@ -76,24 +86,75 @@ class Terminal {
     }
   };
 
-  private _questionGoogleHandler = async (session: string) => {
+  private _leetCodeQuestionHandler = async (session: string, query: string) => {
     this._leetcode.setSessionId(session);
-    this._spinner.text = "Fetching questions from LeetCode";
     this._spinner.start();
-    const resp = await this._leetcode.fetchGoogleQuestion(
+    return await this._leetcode
+      .fetchQuestion(query, this._spinner)
+      .then((data) => {
+        this._spinner.succeed("Successfully fetched questions from LeetCode");
+        return data;
+      });
+  };
+
+  private async _fetchLeetCodeQuestionHandler(
+    sessionResp: { session: any } & { [x: string]: {} },
+    query: string
+  ) {
+    this._spinner.text = "Fetching questions from LeetCode on ascending order";
+    const questions = await this._leetCodeQuestionHandler(
+      sessionResp.session,
       JSON.stringify({
-        query: questionGoogleQuery,
+        query: query,
+        variables: {
+          categorySlug: "",
+          skip: 0,
+          limit: -1,
+          filters: {},
+        },
+        operationName: "problemsetQuestionList",
+      })
+    );
+
+    this._spinner.text = "Fetching questions from LeetCode on descending order";
+    const descResult = await this._leetCodeQuestionHandler(
+      sessionResp.session,
+      JSON.stringify({
+        query: query,
+        variables: {
+          categorySlug: "",
+          skip: 0,
+          limit: 1,
+          filters: {
+            orderBy: "FRONTEND_ID",
+            sortOrder: "DESCENDING",
+          },
+        },
+        operationName: "problemsetQuestionList",
+      })
+    );
+
+    return questions.data.data.problemsetQuestionList.questions.push(
+      ...descResult.data.data.problemsetQuestionList.questions
+    );
+  }
+
+  private async _fetchGoogleQuestionHandler(
+    sessionResp: { session: any } & { [x: string]: {} },
+    query: string
+  ) {
+    const questions = await this._leetCodeQuestionHandler(
+      sessionResp.session,
+      JSON.stringify({
+        query: query,
         variables: {
           slug: "google",
         },
         operationName: "getCompanyTag",
-      }),
-      this._spinner
+      })
     );
-    const res = mapFrequencyToObject(resp.data.data.companyTag);
-    this._spinner.succeed("Successfully fetched questions from LeetCode");
-    return res;
-  };
+    return mapFrequencyToObject(questions.data.data.companyTag);
+  }
 }
 
 export default Terminal;

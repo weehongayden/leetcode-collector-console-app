@@ -10,9 +10,14 @@ class Inquirer {
       message: "What would you like to do?",
       choices: [
         {
+          key: "fetch-leetcode-question",
+          name: "Fetch All the LeetCode Questions",
+          value: "fetch-leetcode-question",
+        },
+        {
           key: "fetch-google-question",
           name: "Fetch Google Question from LeetCode",
-          value: "fetch-google-question-from-leetcode",
+          value: "fetch-google-question",
         },
       ],
     });
@@ -46,14 +51,9 @@ class Inquirer {
           value: "notion",
         },
         {
-          key: "json",
-          name: "Json File",
-          value: "json",
-        },
-        {
           key: "exit",
           name: "Exit application",
-          value: null,
+          value: "exit",
         },
       ],
     });
