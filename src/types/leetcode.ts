@@ -1,12 +1,13 @@
 export type Question = {
   acRate: number;
   difficulty: string;
-  freqBar?: number;
+  freqBar: number;
   frontendQuestionId: string;
   isFavor: boolean;
   paidOnly: boolean;
   title: string;
   titleSlug: string;
+  status: string;
   topicTags: TopicTagsProps[] & string;
   topicTagsString?: string;
 };

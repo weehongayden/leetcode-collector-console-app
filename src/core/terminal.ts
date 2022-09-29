@@ -1,9 +1,13 @@
-import { AxiosPromise } from "axios";
 import chalk from "chalk";
 import ora, { Ora } from "ora";
+
+import {
+  createGoogleQuestionDatabase,
+  createLeetCodeQuestionDatabase,
+} from "../query/notion";
 import { Question } from "types/leetcode";
 import { questionGoogleQuery, questionLeetCodeQuery } from "../query/leetcode";
-import { DatabaseArgumentsType, MenuOption } from "../types/terminal";
+import { DatabaseArgumentsType } from "../types/terminal";
 import { convertToString, mapFrequencyToObject } from "../utils/leetcode";
 
 import Database from "./database";
@@ -109,9 +113,14 @@ class Terminal {
                   if (notionCreation) {
                     return this._inquirier
                       .promptNotionPage()
-                      .then(
-                        async ({ notionPg }) =>
-                          await this._notion.createNotionDatabase(notionPg)
+                      .then(async ({ notionPg }) =>
+                        questionType === "fetch-google-question"
+                          ? await this._notion.createNotionDatabase(
+                              createGoogleQuestionDatabase(notionPg)
+                            )
+                          : await this._notion.createNotionDatabase(
+                              createLeetCodeQuestionDatabase(notionPg)
+                            )
                       );
                   }
                   return;
@@ -128,7 +137,7 @@ class Terminal {
                 args.questions,
                 this._spinner
               )
-            : await this._notion.notionGoogleQuestionHandler(
+            : await this._notion.notionLeetCodeQuestionHandler(
                 databaseId,
                 args.questions,
                 this._spinner
@@ -160,7 +169,7 @@ class Terminal {
       await this._leetCodeQuestionHandler(
         sessionResp.session,
         JSON.stringify({
-          query: query,
+          query,
           variables: {
             categorySlug: "",
             skip: 0,

@@ -4,10 +4,8 @@ import { QuestionModel } from "types/database";
 import { NotionType } from "types/notion";
 import chalk from "chalk";
 
-import {
-  addGoogleQuestion,
-  createGoogleQuestionDatabase,
-} from "../query/notion";
+import { addGoogleQuestion, addLeetCodeQuestion } from "../query/notion";
+import { Question } from "types/leetcode";
 
 class Notion {
   private _headers: AxiosRequestHeaders;
@@ -40,13 +38,65 @@ class Notion {
       });
   };
 
-  createNotionDatabase = async (pageId: string) =>
+  createNotionDatabase = async (query: {}) =>
     await axios({
       method: "POST",
       url: "https://api.notion.com/v1/databases",
       headers: this._headers,
-      data: createGoogleQuestionDatabase(pageId),
+      data: query,
     });
+
+  notionLeetCodeQuestionHandler = async (
+    databaseId: string,
+    questions: Question[],
+    spinner: Ora
+  ) => {
+    const taskList: any = [];
+    let count = 0;
+    spinner.text = "Adding questions to Notion";
+    spinner.start();
+
+    for (const question of questions) {
+      let resp;
+      spinner.text = `Checking record ${chalk.green(
+        question.title
+      )} from Notion database`;
+      const isExist = await this.getRecord(databaseId, {
+        filter: {
+          property: "No",
+          number: {
+            equals: parseInt(question.frontendQuestionId),
+          },
+        },
+      });
+      if (isExist.results.length > 0) {
+        spinner.text = `Updating ${chalk.green(question.title)} to Notion`;
+        const splitUrl = isExist.results[0].url.split("/");
+        const pageId = splitUrl.pop().split("-").pop();
+
+        resp = await this.updateQuestion(
+          pageId,
+          question.freqBar,
+          question.status,
+          spinner
+        );
+      } else {
+        spinner.text = `Adding ${chalk.green(question.title)} to Notion`;
+        resp = await this.addQuestion(
+          spinner,
+          addLeetCodeQuestion(databaseId, question)
+        );
+      }
+
+      taskList.push(resp);
+      count++;
+    }
+    await Promise.all(taskList);
+
+    spinner.succeed("Operation executed successfully");
+
+    return count;
+  };
 
   notionGoogleQuestionHandler = async (
     databaseId: string,
@@ -76,14 +126,18 @@ class Notion {
         const splitUrl = isExist.results[0].url.split("/");
         const pageId = splitUrl.pop().split("-").pop();
 
-        resp = await this.updateGoogleQuestionFrequency(
+        resp = await this.updateQuestion(
           pageId,
           question.frequency,
+          question.status,
           spinner
         );
       } else {
         spinner.text = `Adding ${chalk.green(question.title)} to Notion`;
-        resp = await this.addGoogleQuestion(databaseId, question, spinner);
+        resp = await this.addQuestion(
+          spinner,
+          addGoogleQuestion(databaseId, question)
+        );
       }
 
       taskList.push(resp);
@@ -96,26 +150,23 @@ class Notion {
     return count;
   };
 
-  addGoogleQuestion = async (
-    databaseId: string,
-    question: QuestionModel,
-    spinner: Ora
-  ) => {
+  addQuestion = async (spinner: Ora, query: {}) => {
     try {
       return await axios({
         method: "POST",
         url: "https://api.notion.com/v1/pages",
         headers: this._headers,
-        data: addGoogleQuestion(databaseId, question),
+        data: query,
       });
     } catch (e: unknown) {
       spinner.fail("Failed to add questions to Notion");
     }
   };
 
-  updateGoogleQuestionFrequency = async (
+  updateQuestion = async (
     pageId: string,
     frequency: number,
+    status: string,
     spinner: Ora
   ) => {
     try {
@@ -128,6 +179,10 @@ class Notion {
             Frequency: {
               type: "number",
               number: parseFloat(frequency!.toFixed(2)),
+            },
+            Completed: {
+              type: "checkbox",
+              checkbox: status === "ac" ? true : false,
             },
           },
         }),
