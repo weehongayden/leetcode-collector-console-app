@@ -10,6 +10,7 @@ export type Question = {
   status: string;
   topicTags: TopicTagsProps[] & string;
   topicTagsString?: string;
+  featuredList?: string;
 };
 
 export type CompanyTag = {
@@ -56,4 +57,11 @@ export type FeatureListProps = {
 
 export type Frequency = {
   [key: string]: number;
+};
+
+export type FavoriteList = {
+  id: string;
+  name: string;
+  questions: number[];
+  type: string;
 };

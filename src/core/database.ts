@@ -26,8 +26,8 @@ class Database {
       this._sequelize = new Sequelize(connectionString, this._config);
       await this._sequelize.authenticate();
       return true;
-    } catch (error: any) {
-      return error.message;
+    } catch (error: unknown) {
+      return error;
     }
   };
 
@@ -79,6 +79,11 @@ class Database {
           field: "topic_tags",
           allowNull: false,
         },
+        featuredList: {
+          type: DataTypes.TEXT,
+          field: "featured_list",
+          allowNull: true,
+        },
         status: {
           type: DataTypes.STRING,
           allowNull: true,
@@ -95,6 +100,7 @@ class Database {
               "acRate",
               "status",
               "freqBar",
+              "featuredList",
               "updated_at",
             ],
           });

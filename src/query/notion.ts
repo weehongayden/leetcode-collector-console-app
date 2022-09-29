@@ -232,6 +232,16 @@ export const addLeetCodeQuestion = (id: string, question: Question) => {
           };
         }),
       },
+      "Featured List": {
+        type: "multi_select",
+        multi_select: question.featuredList
+          ? JSON.parse(question.featuredList).map((list: string) => {
+              return {
+                name: list,
+              };
+            })
+          : [],
+      },
     },
     parent: {
       database_id: id,

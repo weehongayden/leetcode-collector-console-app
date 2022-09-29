@@ -51,16 +51,16 @@ class Notion {
     questions: Question[],
     spinner: Ora
   ) => {
-    const taskList: any = [];
+    const taskList = [];
     let count = 0;
     spinner.text = "Adding questions to Notion";
     spinner.start();
 
     for (const question of questions) {
       let resp;
-      spinner.text = `Checking record ${chalk.green(
-        question.title
-      )} from Notion database`;
+      spinner.text = `[${count + 1} of ${
+        questions.length + 1
+      }] Checking record ${chalk.green(question.title)} from Notion database`;
       const isExist = await this.getRecord(databaseId, {
         filter: {
           property: "No",
@@ -70,7 +70,9 @@ class Notion {
         },
       });
       if (isExist.results.length > 0) {
-        spinner.text = `Updating ${chalk.green(question.title)} to Notion`;
+        spinner.text = `[${count + 1} of ${
+          questions.length + 1
+        }] Updating ${chalk.green(question.title)} to Notion`;
         const splitUrl = isExist.results[0].url.split("/");
         const pageId = splitUrl.pop().split("-").pop();
 
@@ -81,7 +83,9 @@ class Notion {
           spinner
         );
       } else {
-        spinner.text = `Adding ${chalk.green(question.title)} to Notion`;
+        spinner.text = `[${count + 1} of ${
+          questions.length + 1
+        }] Adding ${chalk.green(question.title)} to Notion`;
         resp = await this.addQuestion(
           spinner,
           addLeetCodeQuestion(databaseId, question)
@@ -103,16 +107,16 @@ class Notion {
     questions: QuestionModel[],
     spinner: Ora
   ) => {
-    const taskList: any = [];
+    const taskList = [];
     let count = 0;
     spinner.text = "Adding questions to Notion";
     spinner.start();
 
     for (const question of questions) {
       let resp;
-      spinner.text = `Checking record ${chalk.green(
-        question.title
-      )} from Notion database`;
+      spinner.text = `[${count + 1} of ${
+        questions.length + 1
+      }] Checking record ${chalk.green(question.title)} from Notion database`;
       const isExist = await this.getRecord(databaseId, {
         filter: {
           property: "No",
@@ -122,7 +126,9 @@ class Notion {
         },
       });
       if (isExist.results.length > 0) {
-        spinner.text = `Updating ${chalk.green(question.title)} to Notion`;
+        spinner.text = `[${count + 1} of ${
+          questions.length + 1
+        }] Updating ${chalk.green(question.title)} to Notion`;
         const splitUrl = isExist.results[0].url.split("/");
         const pageId = splitUrl.pop().split("-").pop();
 
@@ -133,7 +139,9 @@ class Notion {
           spinner
         );
       } else {
-        spinner.text = `Adding ${chalk.green(question.title)} to Notion`;
+        spinner.text = `[${count + 1} of ${
+          questions.length + 1
+        }] Adding ${chalk.green(question.title)} to Notion`;
         resp = await this.addQuestion(
           spinner,
           addGoogleQuestion(databaseId, question)
@@ -188,7 +196,6 @@ class Notion {
         }),
       });
     } catch (e: unknown) {
-      console.log("Error happened on Axios Add Feature List: ", e);
       spinner.fail("Failed to update questions to Notion");
     }
   };

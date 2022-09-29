@@ -5,7 +5,7 @@ import {
   createGoogleQuestionDatabase,
   createLeetCodeQuestionDatabase,
 } from "../query/notion";
-import { Question } from "types/leetcode";
+import { FavoriteList, Question } from "types/leetcode";
 import { questionGoogleQuery, questionLeetCodeQuery } from "../query/leetcode";
 import { DatabaseArgumentsType } from "../types/terminal";
 import { convertToString, mapFrequencyToObject } from "../utils/leetcode";
@@ -159,8 +159,18 @@ class Terminal {
       });
   };
 
+  private _leetCodeFavoriteQuestionHandler = async (session: string) => {
+    this._leetcode.setSessionId(session);
+    this._spinner.start();
+    return await this._leetcode
+      .fetchFavoriteQuestions(this._spinner)
+      .then((data) => {
+        return data;
+      });
+  };
+
   private async _fetchLeetCodeQuestionHandler(
-    sessionResp: { session: any } & { [x: string]: {} },
+    sessionResp: { session: string } & { [x: string]: {} },
     query: string
   ) {
     this._spinner.text = "Fetching questions from LeetCode";
@@ -195,6 +205,7 @@ class Terminal {
           operationName: "problemsetQuestionList",
         })
       ),
+      await this._leetCodeFavoriteQuestionHandler(sessionResp.session),
     ]);
 
     questionResp[0].data.data.problemsetQuestionList.questions.push(
@@ -207,11 +218,16 @@ class Terminal {
       }
     );
 
+    this._mapfeaturedLists(
+      questionResp[2].data,
+      questionResp[0].data.data.problemsetQuestionList.questions
+    );
+
     return questionResp[0].data.data.problemsetQuestionList.questions;
   }
 
   private async _fetchGoogleQuestionHandler(
-    sessionResp: { session: any } & { [x: string]: {} },
+    sessionResp: { session: string } & { [x: string]: {} },
     query: string
   ) {
     const questions = await this._leetCodeQuestionHandler(
@@ -226,6 +242,30 @@ class Terminal {
     );
     return mapFrequencyToObject(questions.data.data.companyTag);
   }
+
+  private _mapfeaturedLists = (
+    favoritesList: FavoriteList[],
+    questions: Question[]
+  ) => {
+    const questionsMap = new Map();
+
+    favoritesList.forEach((list: FavoriteList) => {
+      list.questions.map((question) => {
+        const set = new Set(questionsMap.get(question));
+        set.add(list.name);
+        questionsMap.set(question, set);
+      });
+    });
+
+    questions.forEach((question) => {
+      const id = parseInt(question.frontendQuestionId);
+      Object.assign(question, {
+        featuredList: questionsMap.get(id)
+          ? JSON.stringify(Array.from(questionsMap.get(id)))
+          : undefined,
+      });
+    });
+  };
 }
 
 export default Terminal;
