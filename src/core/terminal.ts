@@ -122,8 +122,9 @@ class Terminal {
                               createLeetCodeQuestionDatabase(notionPg)
                             )
                       );
+                  } else {
+                    process.exit(-1);
                   }
-                  return;
                 });
               if (res) {
                 return res.data.id;
