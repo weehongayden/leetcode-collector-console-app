@@ -87,7 +87,7 @@ export const createLeetCodeQuestionDatabase = (id: string) => {
     icon: {
       type: "external",
       external: {
-        url: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png",
+        url: "https://img.icons8.com/external-tal-revivo-shadow-tal-revivo/344/external-level-up-your-coding-skills-and-quickly-land-a-job-logo-shadow-tal-revivo.png",
       },
     },
     parent: {
@@ -169,7 +169,7 @@ export const createGoogleQuestionDatabase = (id: string) => {
     icon: {
       type: "external",
       external: {
-        url: "https://upload.wikimedia.org/wikipedia/commons/1/19/LeetCode_logo_black.png",
+        url: "https://img.icons8.com/external-tal-revivo-shadow-tal-revivo/344/external-level-up-your-coding-skills-and-quickly-land-a-job-logo-shadow-tal-revivo.png",
       },
     },
     parent: {
