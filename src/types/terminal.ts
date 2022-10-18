@@ -3,6 +3,7 @@ import { Question } from "./leetcode";
 
 export type DatabaseArgumentsType = {
   questions: Question[] & QuestionModel[];
+  company?: string;
   callback: (result: boolean) => {};
 };
 

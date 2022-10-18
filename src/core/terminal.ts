@@ -37,18 +37,24 @@ class Terminal {
   questionMenu = async (answer: string) => {
     switch (answer) {
       case "fetch-leetcode-question":
-      case "fetch-google-question":
+      case "fetch-company-question":
         let query =
-          answer === "fetch-google-question"
+          answer === "fetch-company-question"
             ? questionGoogleQuery
             : questionLeetCodeQuery;
+
+        let company = "";
+        if (answer === "fetch-company-question") {
+          ({ company } = await this._inquirier.promptCompanySelection());
+        }
         const sessionResp = await this._inquirier.promptSessionId();
 
         let questions = [];
 
-        if (answer === "fetch-google-question") {
+        if (answer === "fetch-company-question") {
           questions = await this._fetchGoogleQuestionHandler(
             sessionResp,
+            company,
             query
           );
         } else {
@@ -60,7 +66,11 @@ class Terminal {
 
         this._spinner.succeed("Successfully fetched questions from LeetCode");
 
-        return questions;
+        return {
+          questions,
+          company,
+        };
+
       default:
         process.exit(-1);
     }
@@ -89,7 +99,7 @@ class Terminal {
             }
 
             const count =
-              questionType === "fetch-google-question"
+              questionType === "fetch-company-question"
                 ? await this._database.googleQuestion(args.questions)
                 : await this._database.leetCodeQuestion(args.questions);
 
@@ -114,9 +124,12 @@ class Terminal {
                     return this._inquirier
                       .promptNotionPage()
                       .then(async ({ notionPg }) =>
-                        questionType === "fetch-google-question"
+                        questionType === "fetch-company-question"
                           ? await this._notion.createNotionDatabase(
-                              createGoogleQuestionDatabase(notionPg)
+                              createGoogleQuestionDatabase(
+                                notionPg,
+                                args.company!
+                              )
                             )
                           : await this._notion.createNotionDatabase(
                               createLeetCodeQuestionDatabase(notionPg)
@@ -132,7 +145,7 @@ class Terminal {
             }
           });
         const count =
-          questionType === "fetch-google-question"
+          questionType === "fetch-company-question"
             ? await this._notion.notionGoogleQuestionHandler(
                 databaseId,
                 args.questions,
@@ -229,6 +242,7 @@ class Terminal {
 
   private async _fetchGoogleQuestionHandler(
     sessionResp: { session: string } & { [x: string]: {} },
+    companyName: string,
     query: string
   ) {
     const questions = await this._leetCodeQuestionHandler(
@@ -236,7 +250,7 @@ class Terminal {
       JSON.stringify({
         query: query,
         variables: {
-          slug: "google",
+          slug: companyName,
         },
         operationName: "getCompanyTag",
       })

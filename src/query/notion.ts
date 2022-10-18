@@ -1,5 +1,6 @@
 import { QuestionModel } from "types/database";
 import { Question, TopicTagsProps } from "types/leetcode";
+import { capitalizeFirstLetter } from "../utils/leetcode";
 
 export const createLeetCodeQuestionDatabase = (id: string) => {
   return {
@@ -97,7 +98,7 @@ export const createLeetCodeQuestionDatabase = (id: string) => {
   };
 };
 
-export const createGoogleQuestionDatabase = (id: string) => {
+export const createGoogleQuestionDatabase = (id: string, name: string) => {
   return {
     properties: {
       Tag: {
@@ -151,7 +152,7 @@ export const createGoogleQuestionDatabase = (id: string) => {
       {
         type: "text",
         text: {
-          content: "LeetCode Google Question",
+          content: `LeetCode ${capitalizeFirstLetter(name)} Question`,
           link: null,
         },
         annotations: {

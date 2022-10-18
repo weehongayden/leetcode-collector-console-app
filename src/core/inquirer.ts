@@ -15,9 +15,9 @@ class Inquirer {
           value: "fetch-leetcode-question",
         },
         {
-          key: "fetch-google-question",
-          name: "Fetch Google Question from LeetCode",
-          value: "fetch-google-question",
+          key: "fetch-company-question",
+          name: "Fetch Company Question from LeetCode",
+          value: "fetch-company-question",
         },
         {
           key: "exit",
@@ -39,7 +39,7 @@ class Inquirer {
           : true,
     });
 
-  databaseSelection = async () =>
+  promptDatabaseSelection = async () =>
     await inquirer.prompt({
       type: "rawlist",
       name: "database",
@@ -115,6 +115,25 @@ class Inquirer {
         input.length == 0 || !input
           ? "Notion database Id cannot be blank."
           : true,
+    });
+
+  promptCompanySelection = async () =>
+    await inquirer.prompt({
+      type: "rawlist",
+      name: "company",
+      message: "Where company question you would like to fetch?",
+      choices: [
+        {
+          key: "google",
+          name: "Google",
+          value: "google",
+        },
+        {
+          key: "amazon",
+          name: "Amazon",
+          value: "amazon",
+        },
+      ],
     });
 }
 

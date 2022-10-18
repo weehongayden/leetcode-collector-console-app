@@ -30,3 +30,7 @@ export const mapFrequencyToObject = (company: CompanyTag) => {
 export const convertToString = (questions: [] | object) => {
   return JSON.stringify(questions);
 };
+
+export const capitalizeFirstLetter = (string: string) => {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
