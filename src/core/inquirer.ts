@@ -20,6 +20,11 @@ class Inquirer {
           value: "fetch-company-question",
         },
         {
+          key: "fetch-grind-question",
+          name: "Fetch Question from Grind 75",
+          value: "fetch-grind-question",
+        },
+        {
           key: "exit",
           name: "Exit",
           value: "exit",
@@ -134,6 +139,88 @@ class Inquirer {
           value: "amazon",
         },
       ],
+    });
+
+  promptGrindWeeks = async () =>
+    await inquirer.prompt({
+      type: "input",
+      name: "weeks",
+      message: "How many weeks you would like to prepare? (1 ~ 26 weeks)",
+      validate: (value: string) => {
+        const selection = parseInt(value);
+        if (isNaN(selection)) {
+          return "Please enter a number";
+        } else if (selection < 1 && selection > 26) {
+          return "Number cannot less than 1 or greater than 26";
+        }
+        return true;
+      },
+    });
+
+  promptGrindHours = async () =>
+    await inquirer.prompt({
+      type: "input",
+      name: "hours",
+      message: "How many hours you would need per week? (1 ~ 40 hours)",
+      validate: (value: string) => {
+        const selection = parseInt(value);
+        if (isNaN(selection)) {
+          return "Please enter a number";
+        } else if (selection < 1 && selection > 40) {
+          return "Number cannot less than 1 or greater than 40";
+        }
+        return true;
+      },
+    });
+
+  promptGrindDifficulty = async () =>
+    await inquirer.prompt({
+      type: "checkbox",
+      name: "difficulty",
+      message: "Please select the difficulty",
+      choices: [
+        {
+          value: "Easy",
+          name: "Easy",
+          checked: true,
+        },
+        {
+          value: "Medium",
+          name: "Medium",
+          checked: true,
+        },
+        {
+          value: "Hard",
+          name: "Hard",
+          checked: true,
+        },
+      ],
+      validate: (value: Array<string>) => {
+        if (value.length == 0) {
+          return "Please select at least one difficulty";
+        }
+        return true;
+      },
+    });
+
+  promptGrindGrouping = async () =>
+    await inquirer.prompt({
+      type: "rawlist",
+      name: "group",
+      message: "Please select the group option",
+      choices: [
+        {
+          value: "weeks",
+          name: "Week",
+          checked: true,
+        },
+        {
+          value: "topics",
+          name: "Topic",
+          checked: true,
+        },
+      ],
+      default: ["Week"],
     });
 }
 
