@@ -4,7 +4,11 @@ import { QuestionModel } from "types/database";
 import { NotionType } from "types/notion";
 import chalk from "chalk";
 
-import { addGoogleQuestion, addLeetCodeQuestion } from "../query/notion";
+import {
+  addGoogleQuestion,
+  addGrindQuestion,
+  addLeetCodeQuestion,
+} from "../query/notion";
 import { Question } from "types/leetcode";
 
 class Notion {
@@ -167,7 +171,8 @@ class Notion {
         data: query,
       });
     } catch (e: unknown) {
-      spinner.fail("Failed to add questions to Notion");
+      console.log(e);
+      spinner.fail("Failed to add questions to Notion ");
     }
   };
 
@@ -198,6 +203,44 @@ class Notion {
     } catch (e: unknown) {
       spinner.fail("Failed to update questions to Notion");
     }
+  };
+
+  createGrindDatabase = async (query: {}) =>
+    await axios({
+      method: "POST",
+      url: "https://api.notion.com/v1/databases",
+      headers: this._headers,
+      data: query,
+    });
+
+  grindQuestionHandler = async (
+    databaseId: string,
+    questions: any[],
+    spinner: Ora
+  ) => {
+    const taskList = [];
+    let count = 0;
+    spinner.text = "Adding questions to Notion";
+    spinner.start();
+
+    for (const question of questions) {
+      let resp;
+      spinner.text = `[${count + 1} of ${
+        questions.length + 1
+      }] Adding ${chalk.green(question.title)} to Notion`;
+      resp = await this.addQuestion(
+        spinner,
+        addGrindQuestion(databaseId, question)
+      );
+
+      taskList.push(resp);
+      count++;
+    }
+    await Promise.all(taskList);
+
+    spinner.succeed("Operation executed successfully");
+
+    return count;
   };
 }
 

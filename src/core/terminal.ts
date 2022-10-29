@@ -3,6 +3,7 @@ import ora, { Ora } from "ora";
 
 import {
   createGoogleQuestionDatabase,
+  createGrindDatabase,
   createLeetCodeQuestionDatabase,
 } from "../query/notion";
 import { FavoriteList, Question } from "types/leetcode";
@@ -14,6 +15,7 @@ import Database from "./database";
 import Inquirer from "./inquirer";
 import LeetCode from "./leetcode";
 import Notion from "./notion";
+import Grind from "./grind";
 
 class Terminal {
   private _spinner: Ora;
@@ -21,6 +23,7 @@ class Terminal {
   private _leetcode: LeetCode;
   private _database: Database;
   private _notion: Notion;
+  private _grind: Grind;
 
   constructor() {
     this._spinner = ora({
@@ -70,7 +73,32 @@ class Terminal {
           questions,
           company,
         };
+      case "fetch-grind-question":
+        const { weeks } = await this._inquirier.promptGrindWeeks();
+        const { hours } = await this._inquirier.promptGrindHours();
+        const { difficulty } = await this._inquirier.promptGrindDifficulty();
 
+        this._grind = new Grind(weeks, hours, "weeks", difficulty);
+        const grindQuestionWeek = await this._grind.getQuestions();
+
+        this._grind = new Grind(weeks, hours, "topics", difficulty);
+        const grindQuestionTopic = await this._grind.getQuestions();
+
+        grindQuestionWeek.forEach((question) => {
+          const { category } = grindQuestionTopic.filter((filterQuestion) => filterQuestion.title === question.title)[0];
+
+          if (category) {
+            Object.assign(question, {
+              week: question.category,
+              category: category
+            });
+          }
+        });
+
+        return {
+          questions: grindQuestionWeek,
+          undefined,
+        };
       default:
         process.exit(-1);
     }
@@ -123,18 +151,24 @@ class Terminal {
                   if (notionCreation) {
                     return this._inquirier
                       .promptNotionPage()
-                      .then(async ({ notionPg }) =>
-                        questionType === "fetch-company-question"
-                          ? await this._notion.createNotionDatabase(
-                              createGoogleQuestionDatabase(
-                                notionPg,
-                                args.company!
-                              )
+                      .then(async ({ notionPg }) => {
+                        if (questionType === "fetch-company-question") {
+                          return await this._notion.createNotionDatabase(
+                            createGoogleQuestionDatabase(
+                              notionPg,
+                              args.company!
                             )
-                          : await this._notion.createNotionDatabase(
-                              createLeetCodeQuestionDatabase(notionPg)
-                            )
-                      );
+                          );
+                        } else if (questionType === "fetch-leetcode-question") {
+                          return await this._notion.createNotionDatabase(
+                            createLeetCodeQuestionDatabase(notionPg)
+                          );
+                        } else {
+                          return await this._notion.createNotionDatabase(
+                            createGrindDatabase(notionPg)
+                          );
+                        }
+                      });
                   } else {
                     process.exit(-1);
                   }
@@ -144,23 +178,62 @@ class Terminal {
               }
             }
           });
-        const count =
-          questionType === "fetch-company-question"
-            ? await this._notion.notionGoogleQuestionHandler(
-                databaseId,
-                args.questions,
-                this._spinner
-              )
-            : await this._notion.notionLeetCodeQuestionHandler(
-                databaseId,
-                args.questions,
-                this._spinner
-              );
+        let count = 0;
+        if (questionType === "fetch-company-question") {
+          count = await this._notion.notionGoogleQuestionHandler(
+            databaseId,
+            args.questions,
+            this._spinner
+          );
+        } else if (questionType === "fetch-leetcode-question") {
+          count = await this._notion.notionLeetCodeQuestionHandler(
+            databaseId,
+            args.questions,
+            this._spinner
+          );
+        } else {
+          count = await this._notion.grindQuestionHandler(
+            databaseId,
+            args.questions,
+            this._spinner
+          );
+        }
 
         return args.callback(count === args.questions.length);
       default:
         process.exit(-1);
     }
+  };
+
+  grindDatabase = async (
+    args: DatabaseArgumentsType
+  ) => {
+    const count = await this._inquirier
+      .promptNotionToken()
+      .then(async ({ notionToken }) => {
+        this._notion.setToken(notionToken);
+        return await this._inquirier
+          .promptNotionDatabaseCreation()
+          .then(async ({ notionCreation }) => {
+            if (notionCreation) {
+              const res = await this._inquirier
+                .promptNotionPage()
+                .then(async ({ notionPg }) => await this._notion.createNotionDatabase(
+                  createGrindDatabase(notionPg)
+                ));
+              const count = await this._notion.grindQuestionHandler(
+                res.data.id,
+                args.questions,
+                this._spinner
+              );
+              return count;
+            } else {
+              process.exit(-1);
+            }
+          });
+      });
+
+    return args.callback(count === args.questions.length);
   };
 
   private _leetCodeQuestionHandler = async (session: string, query: string) => {

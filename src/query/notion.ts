@@ -237,10 +237,10 @@ export const addLeetCodeQuestion = (id: string, question: Question) => {
         type: "multi_select",
         multi_select: question.featuredList
           ? JSON.parse(question.featuredList).map((list: string) => {
-              return {
-                name: list,
-              };
-            })
+            return {
+              name: list,
+            };
+          })
           : [],
       },
     },
@@ -302,6 +302,132 @@ export const addGoogleQuestion = (id: string, question: QuestionModel) => {
       Completed: {
         type: "checkbox",
         checkbox: question.status === "ac" ? true : false,
+      },
+    },
+    parent: {
+      database_id: id,
+    },
+  };
+};
+
+export const createGrindDatabase = (id: string) => {
+  return {
+    properties: {
+      Week: {
+        name: "Week",
+        type: "select",
+        select: {
+          options: [],
+        },
+      },
+      Category: {
+        name: "Category",
+        type: "select",
+        select: {
+          options: [],
+        },
+      },
+      "Completion Date": {
+        name: "Completion Date",
+        type: "formula",
+        formula: {
+          expression:
+            '(prop("Completed") == true) ? now() : fromTimestamp(toNumber(""))',
+        },
+      },
+      Completed: {
+        name: "Completed",
+        type: "checkbox",
+        checkbox: {},
+      },
+      Name: {
+        id: "title",
+        name: "Category",
+        type: "title",
+        title: {},
+      },
+      Difficulty: {
+        name: "Difficulty",
+        type: "select",
+        select: {
+          options: [],
+        },
+      },
+    },
+    title: [
+      {
+        type: "text",
+        text: {
+          content: `Grind 75 Questions`,
+          link: null,
+        },
+        annotations: {
+          bold: false,
+          italic: false,
+          strikethrough: false,
+          underline: false,
+          code: false,
+          color: "default",
+        },
+        plain_text: "Grind 75 Questions",
+        href: null,
+      },
+    ],
+    icon: {
+      type: "external",
+      external: {
+        url: "https://img.icons8.com/external-tal-revivo-shadow-tal-revivo/344/external-level-up-your-coding-skills-and-quickly-land-a-job-logo-shadow-tal-revivo.png",
+      },
+    },
+    parent: {
+      type: "page_id",
+      page_id: id,
+    },
+  };
+};
+
+export const addGrindQuestion = (id: string, question: any) => {
+  return {
+    properties: {
+      Week: {
+        select: {
+          name: question.week,
+        },
+      },
+      Category: {
+        select: {
+          name: question.category,
+        },
+      },
+      Name: {
+        id: "title",
+        type: "title",
+        title: [
+          {
+            type: "text",
+            text: {
+              content: question.title,
+              link: {
+                url: question.url,
+              },
+            },
+            annotations: {
+              bold: false,
+              italic: false,
+              strikethrough: false,
+              underline: false,
+              code: false,
+              color: "default",
+            },
+            plain_text: question.title,
+            href: question.url,
+          },
+        ],
+      },
+      Difficulty: {
+        select: {
+          name: question.difficulty,
+        },
       },
     },
     parent: {
